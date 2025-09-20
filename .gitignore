@@ -1,0 +1,57 @@
+# ---- Flutter / Dart ----
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.idea/
+**/.vscode/
+**/build/
+**/ios/Flutter/.last_build_id
+**/pubspec.lock
+**/android/.gradle/
+**/android/local.properties
+
+# ---- Platform builds ----
+**/windows/
+**/linux/
+**/macos/
+**/ios/
+**/web/.dart_tool/
+**/web/.firebase/
+
+# ---- Supabase ----
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+supabase/functions/**/node_modules/
+.supabase/
+
+# ---- Python / AI ----
+ai/__pycache__/
+ai/.venv/
+ai/venv/
+ai/*.pth
+ai/*.pt
+ai/*.onnx
+ai/outputs/
+ai/logs/
+
+# Datasets (don’t version huge files)
+ai/data/
+ai/images/
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.7z
+
+# ---- OS cruft ----
+.DS_Store
+Thumbs.db
+
+# ---- Secrets (never commit) ----
+*.env
+.env
+.env.*
+*.key
+*.pem
