@@ -141,7 +141,7 @@ String formatDateTime(dynamic dateTime) {
     return '_'; // Return '_' if input is neither DateTime nor String
   }
 
-  return DateFormat('dd-MM-yyyy / HH:mm').format(parsedDateTime);
+  return DateFormat('dd-MM-yyyy / hh:mm a').format(parsedDateTime);
 }
 
 String checkPrivileges(Map<dynamic, dynamic>? data) {

@@ -19,7 +19,13 @@ class CustomBottomNavigation extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(context, icon: Icons.people_outline, activeIcon: Icons.people, label: 'Patients', index: 0),
+              _buildNavItem(
+                context,
+                icon: Icons.medical_services_outlined,
+                activeIcon: Icons.medical_services,
+                label: 'Doctors',
+                index: 0,
+              ),
               _buildNavItem(
                 context,
                 icon: Icons.calendar_today_outlined,
@@ -29,9 +35,9 @@ class CustomBottomNavigation extends StatelessWidget {
               ),
               _buildNavItem(
                 context,
-                icon: Icons.medical_services_outlined,
-                activeIcon: Icons.medical_services,
-                label: 'Doctors',
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: 'Profile',
                 index: 2,
               ),
             ],

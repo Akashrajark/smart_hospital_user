@@ -45,8 +45,7 @@ class _CustomButtonState extends State<CustomButton> {
         onTap: widget.onPressed,
         autofocus: widget.inverse,
         child: Padding(
-          padding:
-              widget.padding ??
+          padding: widget.padding ??
               EdgeInsets.only(
                 left: widget.label != null ? 15 : 10,
                 right: widget.iconData != null ? 10 : 15,
@@ -63,9 +62,9 @@ class _CustomButtonState extends State<CustomButton> {
                   widget.label!,
                   textAlign: TextAlign.end,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: widget.labelColor ?? (widget.inverse ? Colors.white : widget.color),
-                  ),
+                        fontWeight: FontWeight.w700,
+                        color: widget.labelColor ?? (widget.inverse ? Colors.white : widget.color),
+                      ),
                 ),
               SizedBox(width: widget.label != null && widget.iconData != null ? 5 : 0),
               if (widget.iconData != null && !widget.isLoading)

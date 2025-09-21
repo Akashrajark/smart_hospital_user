@@ -51,6 +51,7 @@ class CustomTextFormField extends StatelessWidget {
             decoration: InputDecoration(
               contentPadding: contentPadding,
               labelText: labelText,
+              alignLabelWithHint: true,
               suffixIcon: suffixIcon,
               prefixIcon: prefixIconData != null
                   ? Padding(

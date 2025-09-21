@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:smart_hospital/sections/appoinment/appointments_screen.dart';
+import 'package:smart_hospital/sections/doctors/doctors_screen.dart';
+import 'package:smart_hospital/sections/profile/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../common_widgets/custom_alert_dialog.dart';
 import 'sign_in/login_screen.dart';
-import 'patients/patients_screen.dart';
 import '../common_widgets/custom_bottom_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,10 +17,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   late PageController _pageController;
-
-  final List<Widget> _screens = const [
-    PatientsScreen(),
-  ];
 
   @override
   void initState() {
@@ -49,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Admin Panel',
+          'Smart Hospital',
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w500),
@@ -65,19 +64,20 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Are you sure you want to logout?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-                    ElevatedButton(
-                      onPressed: () {
-                        Supabase.instance.client.auth.signOut();
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-                      },
-                      child: const Text('Logout'),
-                    ),
-                  ],
+                builder: (context) => CustomAlertDialog(
+                  title: 'Logout',
+                  description: 'Are you sure you want to logout?',
+                  primaryButton: 'Yes',
+                  secondaryButton: 'No',
+                  onPrimaryPressed: () async {
+                    await Supabase.instance.client.auth.signOut();
+                    if (mounted) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                      );
+                    }
+                  },
                 ),
               );
             },
@@ -92,7 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentIndex = index;
           });
         },
-        children: _screens,
+        children: [
+          DoctorsScreen(),
+          AppointmentsScreen(),
+          ProfileScreen(),
+        ],
       ),
       bottomNavigationBar: CustomBottomNavigation(currentIndex: _currentIndex, onTap: _onNavTap),
     );

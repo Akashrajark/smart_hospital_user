@@ -23,13 +23,15 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
 
         if (authResponse.user != null) {
           event.data['user_id'] = authResponse.user!.id;
-          event.data['image_url'] = await uploadFile(
-            'patient_profile_photo',
-            event.data['image'],
-            event.data['image_name'],
-          );
-          event.data.remove('image');
-          event.data.remove('image_name');
+          if (event.data['image'] != null) {
+            event.data['image_url'] = await uploadFile(
+              'patient_profile_photo',
+              event.data['image'],
+              event.data['image_name'],
+            );
+            event.data.remove('image');
+            event.data.remove('image_name');
+          }
           event.data.remove('password');
           await table.insert(event.data);
           emit(SignUpSuccessState());

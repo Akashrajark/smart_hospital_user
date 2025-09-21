@@ -47,11 +47,10 @@ class CustomAlertDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                )),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            )),
                   ),
                   if (action != null) ...action!,
                   InkWell(
@@ -114,25 +113,19 @@ class CustomAlertDialog extends StatelessWidget {
                     if (secondaryButton != null)
                       Expanded(
                         child: CustomButton(
+                          backGroundColor: Colors.white,
                           label: secondaryButton,
-                          onPressed: isLoading
-                              ? null
-                              : onSecondaryPressed ??
-                                  () => Navigator.pop(context),
-                          color: Colors.grey,
+                          onPressed: isLoading ? null : onSecondaryPressed ?? () => Navigator.pop(context),
+                          color: Colors.black,
                         ),
                       ),
-                    if (primaryButton != null && secondaryButton != null)
-                      const SizedBox(width: 10),
+                    if (primaryButton != null && secondaryButton != null) const SizedBox(width: 10),
                     if (primaryButton != null)
                       Expanded(
                         child: CustomButton(
                           label: primaryButton,
                           inverse: true,
-                          onPressed: isLoading
-                              ? null
-                              : onPrimaryPressed ??
-                                  () => Navigator.pop(context),
+                          onPressed: isLoading ? null : onPrimaryPressed ?? () => Navigator.pop(context),
                         ),
                       ),
                   ],

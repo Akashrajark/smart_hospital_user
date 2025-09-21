@@ -12,6 +12,7 @@ ThemeData lightMode = ThemeData(
     outline: Colors.grey.shade700,
   ),
   cardTheme: CardThemeData(
+    elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8.0),
       side: BorderSide(color: Colors.grey.shade300, width: 2),

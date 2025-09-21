@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_hospital/common_widgets/custom_image_picker_button.dart';
-import 'package:smart_hospital/sections/home_screen.dart';
 import 'package:smart_hospital/util/value_validators.dart';
 
 import '../../common_widgets/custom_alert_dialog.dart';
@@ -11,22 +10,23 @@ import '../../common_widgets/custom_button.dart';
 import '../../common_widgets/custom_date_picker.dart';
 import '../../common_widgets/custom_radio_button.dart';
 import '../../common_widgets/custom_text_form_field.dart';
-import '../sign_in/login_screen.dart';
-import 'sign_up_bloc/sign_up_bloc.dart';
+import 'profile_bloc/profile_bloc.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class EditProfileScreen extends StatefulWidget {
+  final Map<String, dynamic> profileData;
+
+  const EditProfileScreen({
+    super.key,
+    required this.profileData,
+  });
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController emergencyContactController = TextEditingController();
   final TextEditingController medicalHistoryController = TextEditingController();
   final TextEditingController chronicConditionController = TextEditingController();
@@ -39,18 +39,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String gender = 'male';
   DateTime? dob;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-
   File? profileImage;
+  String? currentImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
+    final data = widget.profileData;
+
+    fullNameController.text = data['full_name'] ?? '';
+    phoneController.text = data['phone'] ?? '';
+    emergencyContactController.text = data['emergency_contact'] ?? '';
+    medicalHistoryController.text = data['medical_history'] ?? '';
+    chronicConditionController.text = data['chronic_condition'] ?? '';
+    allergiesController.text = data['allergies'] ?? '';
+    pastSurgeriesController.text = data['past_surgeries'] ?? '';
+    familyHistoryController.text = data['family_history'] ?? '';
+    currentMedicationController.text = data['current_medication'] ?? '';
+    lifestyleController.text = data['lifestyle'] ?? '';
+
+    gender = data['gender'] ?? 'male';
+    currentImageUrl = data['image_url'];
+
+    if (data['dob'] != null) {
+      try {
+        dob = DateTime.parse(data['dob']);
+      } catch (e) {
+        dob = null;
+      }
+    }
+  }
 
   @override
   void dispose() {
     fullNameController.dispose();
-    emailController.dispose();
     phoneController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
     emergencyContactController.dispose();
     medicalHistoryController.dispose();
     chronicConditionController.dispose();
@@ -65,16 +92,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => SignUpBloc(),
-      child: BlocConsumer<SignUpBloc, SignUpState>(
+      create: (context) => ProfileBloc(),
+      child: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
-          if (state is SignUpSuccessState) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
+          if (state is ProfileSuccessState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profile updated successfully'),
+                backgroundColor: Colors.green,
+              ),
             );
-          } else if (state is SignUpFailureState) {
+            Navigator.pop(context);
+          } else if (state is ProfileFailureState) {
             showDialog(
               context: context,
               builder: (context) => CustomAlertDialog(
@@ -87,6 +116,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         },
         builder: (context, state) {
           return Scaffold(
+            appBar: AppBar(
+              title: const Text('Edit Profile'),
+              elevation: 0,
+            ),
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -94,35 +127,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      SizedBox(height: MediaQuery.sizeOf(context).height / 17),
-                      Icon(Icons.local_hospital, size: 80, color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(height: 24),
+                      // Profile Picture Section
                       Text(
-                        'Smart Hospital',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                        textAlign: TextAlign.center,
+                        "Profile Picture",
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                      Text(
-                        'Create Patient Account',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 40),
-                      Text("Profile Picture", style: Theme.of(context).textTheme.bodyLarge),
-
                       const SizedBox(height: 8),
-                      // Profile Image
                       CustomImagePickerButton(
+                        selectedImage: currentImageUrl,
                         onPick: (pick) {
                           profileImage = pick;
                         },
                       ),
                       const SizedBox(height: 24),
+
+                      // Personal Information Section
+                      _buildSectionHeader(context, 'Personal Information'),
+                      const SizedBox(height: 16),
 
                       // Full Name
                       RichText(
@@ -146,28 +167,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Email
-                      RichText(
-                        text: TextSpan(
-                          text: "Email ",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      CustomTextFormField(
-                        labelText: "Email",
-                        controller: emailController,
-                        validator: emailValidator,
-                        prefixIconData: Icons.email,
-                      ),
-                      const SizedBox(height: 16),
-
                       // Phone
                       RichText(
                         text: TextSpan(
@@ -187,68 +186,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         controller: phoneController,
                         validator: phoneNumberValidator,
                         prefixIconData: Icons.phone,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Password
-                      RichText(
-                        text: TextSpan(
-                          text: "Password ",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      CustomTextFormField(
-                        labelText: "Password",
-                        controller: passwordController,
-                        validator: passwordValidator,
-                        isObscure: _obscurePassword,
-                        prefixIconData: Icons.lock,
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Confirm Password
-                      RichText(
-                        text: TextSpan(
-                          text: "Confirm Password ",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                          children: [
-                            TextSpan(
-                              text: "*",
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      CustomTextFormField(
-                        labelText: "Confirm Password",
-                        controller: confirmPasswordController,
-                        validator: (value) => confirmPasswordValidator(value, passwordController.text),
-                        isObscure: _obscureConfirmPassword,
-                        prefixIconData: Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -310,6 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 8),
                       CustomDatePicker(
                         isRequired: true,
+                        selectedDate: dob,
                         onPick: (pick) {
                           dob = pick;
                         },
@@ -336,27 +274,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         validator: phoneNumberValidator,
                         prefixIconData: Icons.emergency,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                      // Optional Fields Section Divider
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 16),
-                        child: Row(
-                          children: [
-                            Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Optional Medical Information',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
-                          ],
-                        ),
-                      ),
+                      // Medical Information Section
+                      _buildSectionHeader(context, 'Medical Information'),
+                      const SizedBox(height: 16),
 
                       // Medical History (Optional)
                       Text("Medical History", style: Theme.of(context).textTheme.bodyLarge),
@@ -364,7 +286,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Medical History (Optional)",
                         controller: medicalHistoryController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.medical_information,
                         maxLines: 3,
                       ),
@@ -376,7 +298,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Chronic Conditions (Optional)",
                         controller: chronicConditionController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.healing,
                         maxLines: 2,
                       ),
@@ -388,7 +310,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Allergies (Optional)",
                         controller: allergiesController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.warning,
                         maxLines: 2,
                       ),
@@ -400,7 +322,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Past Surgeries/Hospitalizations (Optional)",
                         controller: pastSurgeriesController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.local_hospital_outlined,
                         maxLines: 3,
                       ),
@@ -412,7 +334,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Family History (Optional)",
                         controller: familyHistoryController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.family_restroom,
                         maxLines: 3,
                       ),
@@ -432,7 +354,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Current Medications (Optional)",
                         controller: currentMedicationController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.medication,
                         maxLines: 3,
                       ),
@@ -452,22 +374,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       CustomTextFormField(
                         labelText: "Lifestyle (Optional)",
                         controller: lifestyleController,
-                        validator: null, // Optional field
+                        validator: null,
                         prefixIconData: Icons.health_and_safety,
                         maxLines: 3,
                       ),
                       const SizedBox(height: 32),
 
-                      // Sign Up Button
+                      // Update Button
                       CustomButton(
-                        label: 'Create Account',
+                        label: 'Update Profile',
                         inverse: true,
-                        isLoading: state is SignUpLoadingState,
+                        isLoading: state is ProfileLoadingState,
                         onPressed: () {
                           if (_formKey.currentState!.validate() && dob != null) {
                             final Map<String, dynamic> data = {
-                              'email': emailController.text.trim(),
-                              'password': passwordController.text.trim(),
                               'full_name': fullNameController.text.trim(),
                               'phone': phoneController.text.trim(),
                               'gender': gender,
@@ -493,42 +413,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               'lifestyle':
                                   lifestyleController.text.trim().isNotEmpty ? lifestyleController.text.trim() : null,
                             };
+
                             if (profileImage != null) {
                               data['image'] = profileImage;
                               data['image_name'] = profileImage!.path;
                             }
-                            BlocProvider.of<SignUpBloc>(context).add(
-                              SignUpEvent(data: data),
+
+                            BlocProvider.of<ProfileBloc>(context).add(
+                              UpdateProfileEvent(data: data),
+                            );
+                          } else if (dob == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please select a date of birth'),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Sign In Link
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account? ',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                              );
-                            },
-                            child: Text(
-                              'Sign In',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -538,6 +440,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          Expanded(child: Divider(color: Theme.of(context).colorScheme.outline)),
+        ],
       ),
     );
   }
