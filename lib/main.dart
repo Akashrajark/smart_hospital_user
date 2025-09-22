@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_hospital/sections/sign_in/login_screen.dart';
 import 'package:smart_hospital/theme/apptheme.dart';
@@ -7,6 +8,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Gemini
+  Gemini.init(apiKey: 'AIzaSyBSOWPBZfNjOTpX84E19xQXM1rQekVzYZI');
+
   await Supabase.initialize(
     url: 'https://ifcksfwmrvraauyqcwde.supabase.co',
     anonKey:

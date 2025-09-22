@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:smart_hospital/sections/appoinment/appointments_screen.dart';
+import 'package:smart_hospital/sections/appoinment/doctor_appointments.dart';
+import 'package:smart_hospital/sections/doctors/doctor_profile.dart';
 import 'package:smart_hospital/sections/doctors/doctors_screen.dart';
-import 'package:smart_hospital/sections/profile/profile_screen.dart';
+import 'package:smart_hospital/util/format_functions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../common_widgets/custom_alert_dialog.dart';
+import 'profile/profile_screen.dart';
 import 'sign_in/login_screen.dart';
 import '../common_widgets/custom_bottom_navigation.dart';
 
@@ -93,9 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         children: [
-          DoctorsScreen(),
-          AppointmentsScreen(),
-          ProfileScreen(),
+          if (isDoctor()) DoctorAppointments() else DoctorsScreen(),
+          if (!isDoctor()) AppointmentsScreen(),
+          if (isDoctor()) DoctorProfile() else ProfileScreen()
         ],
       ),
       bottomNavigationBar: CustomBottomNavigation(currentIndex: _currentIndex, onTap: _onNavTap),

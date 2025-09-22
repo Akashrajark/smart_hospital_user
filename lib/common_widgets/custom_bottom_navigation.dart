@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_hospital/util/format_functions.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -19,26 +20,36 @@ class CustomBottomNavigation extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
-                context,
-                icon: Icons.medical_services_outlined,
-                activeIcon: Icons.medical_services,
-                label: 'Doctors',
-                index: 0,
-              ),
-              _buildNavItem(
-                context,
-                icon: Icons.calendar_today_outlined,
-                activeIcon: Icons.calendar_today,
-                label: 'Appointments',
-                index: 1,
-              ),
+              if (isDoctor())
+                _buildNavItem(
+                  context,
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today,
+                  label: 'Appointments',
+                  index: 0,
+                )
+              else
+                _buildNavItem(
+                  context,
+                  icon: Icons.medical_services_outlined,
+                  activeIcon: Icons.medical_services,
+                  label: 'Doctors',
+                  index: 0,
+                ),
+              if (!isDoctor())
+                _buildNavItem(
+                  context,
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today,
+                  label: 'Appointments',
+                  index: 1,
+                ),
               _buildNavItem(
                 context,
                 icon: Icons.person_outline,
                 activeIcon: Icons.person,
                 label: 'Profile',
-                index: 2,
+                index: isDoctor() ? 1 : 2,
               ),
             ],
           ),

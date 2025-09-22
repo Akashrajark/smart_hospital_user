@@ -1,24 +1,24 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_hospital/common_widgets/custom_button.dart';
-import 'package:smart_hospital/common_widgets/custom_image_picker_button.dart';
-import 'package:smart_hospital/sections/appoinment/appointments_bloc/appointments_bloc.dart';
-import 'package:smart_hospital/util/format_functions.dart';
+import 'package:smart_hospital/sections/appoinment/prescription_screen.dart';
+import 'package:smart_hospital/sections/patients/patient_detail_screen.dart';
 
 import '../../common_widgets/custom_alert_dialog.dart';
-import 'book_appoinments.dart';
+import '../../common_widgets/custom_button.dart';
+import '../../common_widgets/custom_text_form_field.dart';
+import '../../util/format_functions.dart';
+import '../../util/value_validators.dart';
+import 'appointments_bloc/appointments_bloc.dart';
 
-class AppointmentsDetailsScreen extends StatefulWidget {
+class DoctorAppoinmentDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> itemDetails;
-  const AppointmentsDetailsScreen({super.key, required this.itemDetails});
+  const DoctorAppoinmentDetailsScreen({super.key, required this.itemDetails});
 
   @override
-  State<AppointmentsDetailsScreen> createState() => _AppointmentsDetailsScreenState();
+  State<DoctorAppoinmentDetailsScreen> createState() => _DoctorAppoinmentDetailsScreenState();
 }
 
-class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
+class _DoctorAppoinmentDetailsScreenState extends State<DoctorAppoinmentDetailsScreen> {
   final AppointmentsBloc _appointmentsBloc = AppointmentsBloc();
   Map<String, dynamic> appointmentDetails = {};
 
@@ -76,7 +76,7 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                 : ListView(
                     padding: EdgeInsets.all(20),
                     children: [
-                      DoctorCard(doctorDetails: widget.itemDetails['doctor']),
+                      PatientCard(patientDetails: widget.itemDetails['patient']),
                       SizedBox(height: 20),
                       Card(
                         child: Padding(
@@ -114,7 +114,7 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                appointmentDetails['reason'] ?? '',
+                                formatValue(appointmentDetails['reason']),
                                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -122,6 +122,24 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
+                      if (appointmentDetails['status'] == 'booked')
+                        CustomButton(
+                          inverse: true,
+                          label: 'Add Prescription',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => BlocProvider.value(
+                                          value: _appointmentsBloc,
+                                          child: PrescriptionScreen(
+                                            appointmentId: appointmentDetails['id'],
+                                          ),
+                                        ))).then((value) {
+                              getAppointmentById();
+                            });
+                          },
+                        ),
                       if (['prescribed', 'submitted', 'reviewed'].contains(appointmentDetails['status']))
                         Card(
                           child: Padding(
@@ -130,12 +148,34 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Prescription Details',
                                       style:
                                           Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
                                     ),
+                                    if (appointmentDetails['status'] == 'prescribed')
+                                      IconButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) => BlocProvider.value(
+                                                        value: _appointmentsBloc,
+                                                        child: PrescriptionScreen(
+                                                          appointmentId: appointmentDetails['id'],
+                                                          existingDetails: appointmentDetails,
+                                                        ),
+                                                      ))).then((value) {
+                                            getAppointmentById();
+                                          });
+                                        },
+                                        icon: Icon(
+                                          Icons.edit,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
                                   ],
                                 ),
                                 Divider(
@@ -166,22 +206,9 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                             ),
                           ),
                         ),
-                      SizedBox(height: 20),
-                      if (appointmentDetails['status'] == 'prescribed' && appointmentDetails['xray_needed'] == 'Yes')
-                        CustomButton(
-                          inverse: true,
-                          label: 'Upload Xray',
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => BlocProvider.value(
-                                      value: _appointmentsBloc,
-                                      child: UploadXrayDialog(
-                                        appoinmentId: appointmentDetails['id'],
-                                      ),
-                                    ));
-                          },
-                        ),
+                      SizedBox(
+                        height: 20,
+                      ),
                       if (['submitted', 'reviewed'].contains(appointmentDetails['status']))
                         Card(
                           child: Padding(
@@ -240,6 +267,22 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                       SizedBox(
                         height: 20,
                       ),
+                      if (appointmentDetails['status'] == 'submitted')
+                        CustomButton(
+                            inverse: true,
+                            label: 'Add Report',
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => BlocProvider.value(
+                                        value: _appointmentsBloc,
+                                        child: AddEditReportDialog(
+                                          existingDetails: appointmentDetails,
+                                        ),
+                                      )).then((_) {
+                                getAppointmentById();
+                              });
+                            }),
                       if (appointmentDetails['status'] == 'reviewed')
                         Card(
                           child: Padding(
@@ -279,20 +322,20 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
   }
 }
 
-class UploadXrayDialog extends StatefulWidget {
-  final int appoinmentId;
-  const UploadXrayDialog({
+class AddEditReportDialog extends StatefulWidget {
+  final Map<String, dynamic> existingDetails;
+  const AddEditReportDialog({
     super.key,
-    required this.appoinmentId,
+    required this.existingDetails,
   });
 
   @override
-  State<UploadXrayDialog> createState() => _UploadXrayDialogState();
+  State<AddEditReportDialog> createState() => _AddEditReportDialogState();
 }
 
-class _UploadXrayDialogState extends State<UploadXrayDialog> {
-  File? pickedFile;
-
+class _AddEditReportDialogState extends State<AddEditReportDialog> {
+  final TextEditingController reportController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AppointmentsBloc, AppointmentsState>(
@@ -303,26 +346,137 @@ class _UploadXrayDialogState extends State<UploadXrayDialog> {
       },
       builder: (context, state) {
         return CustomAlertDialog(
-          isLoading: state is AppointmentsLoadingState,
-          title: 'Upload Xray',
-          content: CustomImagePickerButton(
-              width: double.infinity,
-              onPick: (pick) {
-                pickedFile = pick;
-              }),
+          title: 'Report',
+          content: Form(
+            key: _formKey,
+            child: Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  Text("Report", style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    minLines: 5,
+                    maxLines: 5,
+                    labelText: 'Report',
+                    controller: reportController,
+                    validator: notEmptyValidator,
+                  ),
+                ],
+              ),
+            ),
+          ),
           primaryButton: 'Submit',
           onPrimaryPressed: () {
-            if (pickedFile != null) {
-              BlocProvider.of<AppointmentsBloc>(context).add(
-                UploadXrayEvent(
-                  appoinmentId: widget.appoinmentId,
-                  xrayDetails: {'file': pickedFile!, 'xray_file_path': pickedFile!.path},
-                ),
-              );
+            if (_formKey.currentState!.validate()) {
+              BlocProvider.of<AppointmentsBloc>(context).add(EditAppointmentEvent(appointmentDetails: {
+                'doctor_review': reportController.text,
+                'status': 'reviewed',
+              }, appointmentId: widget.existingDetails['id']));
             }
           },
         );
       },
+    );
+  }
+}
+
+class PatientCard extends StatelessWidget {
+  const PatientCard({
+    super.key,
+    required this.patientDetails,
+  });
+
+  final Map<String, dynamic> patientDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => patientDataDetailScreen(
+                        patientData: patientDetails,
+                      )));
+        },
+        borderRadius: BorderRadius.circular(8.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 10,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: patientDetails['image_url'] != null
+                    ? Image.network(
+                        patientDetails['image_url'],
+                        height: 100,
+                        width: 100,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 100,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      )
+                    : Container(
+                        height: 100,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "#${patientDetails['id']}",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey, fontWeight: FontWeight.w700),
+                    ),
+                    Text(
+                      formatValue(patientDetails['full_name']),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.tertiary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    Text(
+                      formatValue(patientDetails['email']),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.tertiary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey, size: 16),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

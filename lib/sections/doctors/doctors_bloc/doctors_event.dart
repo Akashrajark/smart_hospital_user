@@ -28,3 +28,5 @@ class BlockUnblockDoctorEvent extends DoctorsEvent {
 
   BlockUnblockDoctorEvent({required this.doctorId, required this.status});
 }
+
+class GetDoctorByIdEvent extends DoctorsEvent {}

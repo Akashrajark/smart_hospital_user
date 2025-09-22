@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 String formatValue(dynamic value) {
   if (value == null || (value is String && value.isEmpty)) {
@@ -144,16 +145,24 @@ String formatDateTime(dynamic dateTime) {
   return DateFormat('dd-MM-yyyy / hh:mm a').format(parsedDateTime);
 }
 
-String checkPrivileges(Map<dynamic, dynamic>? data) {
-  if (data == null ||
-      !(data['access_employee_attendance'] == true ||
-          data['edit_customers'] == true ||
-          data['edit_projects'] == true)) {
-    return 'No Privileges';
+bool isDoctor() {
+  User? currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser != null && currentUser.appMetadata['role'] == 'doctor') {
+    return true;
+  } else {
+    return false;
   }
+}
 
-  return '${data['access_employee_attendance'] == true ? 'Employee Attendance\n' : ''}'
-          '${data['edit_customers'] == true ? 'Edit Customers\n' : ''}'
-          '${data['edit_projects'] == true ? 'Edit Projects\n' : ''}'
-      .trim();
+bool isAdmin() {
+  User? currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser != null && currentUser.appMetadata['role'] == 'admin') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+String? getCurrentUserId() {
+  return Supabase.instance.client.auth.currentUser?.id;
 }

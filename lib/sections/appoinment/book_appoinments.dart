@@ -73,7 +73,7 @@ class _BookAppoinmentsState extends State<BookAppoinments> {
   }
 
   void getDailyAppointments() {
-    _appointmentsBloc.add(GetDailyAppointmentsEvent());
+    _appointmentsBloc.add(GetDailyAppointmentsEvent(doctor_id: widget.doctorDetails['user_id']));
   }
 
   @override

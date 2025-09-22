@@ -21,3 +21,9 @@ final class DoctorsFailureState extends DoctorsState {
 
   DoctorsFailureState({this.message = apiErrorMessage});
 }
+
+final class GetDoctorByIdSuccessState extends DoctorsState {
+  final Map<String, dynamic> doctorDetails;
+
+  GetDoctorByIdSuccessState({required this.doctorDetails});
+}

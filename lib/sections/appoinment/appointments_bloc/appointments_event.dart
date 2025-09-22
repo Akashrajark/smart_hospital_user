@@ -17,7 +17,7 @@ class AddAppointmentEvent extends AppointmentsEvent {
 
 class EditAppointmentEvent extends AppointmentsEvent {
   final Map<String, dynamic> appointmentDetails;
-  final String appointmentId;
+  final int appointmentId;
 
   EditAppointmentEvent({required this.appointmentDetails, required this.appointmentId});
 }
@@ -29,7 +29,8 @@ class DeleteAppointmentEvent extends AppointmentsEvent {
 }
 
 class GetDailyAppointmentsEvent extends AppointmentsEvent {
-  GetDailyAppointmentsEvent();
+  final String doctor_id;
+  GetDailyAppointmentsEvent({required this.doctor_id});
 }
 
 class GetAppointmentByIdEvent extends AppointmentsEvent {
@@ -40,6 +41,16 @@ class GetAppointmentByIdEvent extends AppointmentsEvent {
 
 class UploadXrayEvent extends AppointmentsEvent {
   final Map<String, dynamic> xrayDetails;
+  final int appoinmentId;
 
-  UploadXrayEvent({required this.xrayDetails});
+  UploadXrayEvent({
+    required this.xrayDetails,
+    required this.appoinmentId,
+  });
+}
+
+class GetDoctorAppointmentsEvent extends AppointmentsEvent {
+  final Map<String, dynamic> params;
+
+  GetDoctorAppointmentsEvent({required this.params});
 }
