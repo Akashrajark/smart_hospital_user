@@ -250,16 +250,11 @@ class _AppointmentsDetailsScreenState extends State<AppointmentsDetailsScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      'Xray',
+                                      'Doctor Report',
                                       style:
                                           Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
                                     ),
                                   ],
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'Doctor Report',
-                                  style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                                 const SizedBox(height: 5),
                                 Text(

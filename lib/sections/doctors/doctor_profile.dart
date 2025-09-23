@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_hospital/common_widgets/custom_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../common_widgets/custom_alert_dialog.dart';
 import 'doctors_bloc/doctors_bloc.dart';
@@ -112,7 +114,27 @@ class _DoctorProfileState extends State<DoctorProfile> {
           _buildInfoTile(context, 'Qualification', doctorData['qualification'], Icons.school),
           _buildInfoTile(context, 'Experience', doctorData['experience'], Icons.work_history),
           _buildInfoTile(context, 'Status', _capitalizeFirst(doctorData['status']), Icons.verified_user),
-
+          const SizedBox(height: 16),
+          CustomButton(
+              inverse: true,
+              label: 'Call Admin',
+              onPressed: () async {
+                final Uri phoneUri = Uri(scheme: 'tel', path: '9961721879'); // Replace with actual admin phone number
+                if (await canLaunchUrl(phoneUri)) {
+                  await launchUrl(phoneUri);
+                } else {
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const CustomAlertDialog(
+                        title: 'Error',
+                        description: 'Could not launch phone dialer',
+                        primaryButton: 'Ok',
+                      ),
+                    );
+                  }
+                }
+              }),
           const SizedBox(height: 24),
         ],
       ),
