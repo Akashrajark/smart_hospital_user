@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Gemini
-  Gemini.init(apiKey: 'AIzaSyBSOWPBZfNjOTpX84E19xQXM1rQekVzYZI');
+  Gemini.init(apiKey: 'AIzaSyBW8nQqHa6dUFQHSFGQTJDX5af7pQzOnGs');
 
   await Supabase.initialize(
     url: 'https://ifcksfwmrvraauyqcwde.supabase.co',

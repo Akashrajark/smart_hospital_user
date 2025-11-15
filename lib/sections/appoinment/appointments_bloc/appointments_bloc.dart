@@ -151,11 +151,12 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
                 String geminiPrompt = "Interpret these chest X-ray probabilities: $cleanData";
                 Logger().e('Gemini prompt created: $geminiPrompt');
 
+                bool geminiSuccess = false;
                 try {
                   final gemini = Gemini.instance;
                   Logger().e('Sending clean prompt to Gemini: $geminiPrompt');
 
-                  final geminiResponse = await gemini.text(geminiPrompt);
+                  final geminiResponse = await gemini.prompt(parts: [Part.text(geminiPrompt)]);
 
                   if (geminiResponse?.output != null) {
                     Logger().e('Gemini interpretation: ${geminiResponse!.output}');
@@ -173,23 +174,27 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
                     }
                     event.xrayDetails['status'] = 'submitted';
                     await table.update(event.xrayDetails).eq('id', event.appoinmentId);
+                    geminiSuccess = true;
                   } else {
                     Logger().e('Gemini interpretation failed: No output received');
                   }
                 } catch (geminiError) {
-                  Logger().e('Gemini interpretation error: $geminiError');
+                  Logger().e('Gemini Error: $geminiError');
                   if (geminiError.toString().contains('429')) {
-                    Logger().e('Rate limit exceeded. Please wait before trying again.');
-                    Logger().e('Consider upgrading to paid tier for higher limits.');
+                    Logger().e('Rate limit exceeded - Please try again later');
                   }
-                  Logger().e('Prompt was: $geminiPrompt');
                   // Continue with original response even if Gemini fails
                 }
 
-                emit(AppointmentsSuccessState());
+                if (geminiSuccess) {
+                  emit(AppointmentsSuccessState());
+                } else {
+                  Logger().e('Failed to process X-ray: Gemini interpretation did not complete successfully');
+                  emit(AppointmentsFailureState(message: 'Failed to process X-ray analysis'));
+                }
               } catch (e) {
-                Logger().e('X-ray upload successful. Response: ${response.body}');
-                emit(AppointmentsSuccessState());
+                Logger().e('X-ray response processing error: $e');
+                emit(AppointmentsFailureState(message: 'Failed to process X-ray response: ${e.toString()}'));
               }
             } else {
               Logger().e('X-ray upload failed with status: ${response.statusCode}, body: ${response.body}');
